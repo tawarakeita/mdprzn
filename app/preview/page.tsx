@@ -200,13 +200,13 @@ function PreviewPageContent() {
 
   const markdownComponents: Record<string, any> = {
     h1: ({ children, ...props }: any) => (
-      <h1 className="mt-8 text-4xl font-semibold text-slate-100" {...props}># {children}</h1>
+      <h1 className="mb-8 text-4xl font-semibold text-slate-100" {...props}># {children}</h1>
     ),
     h2: ({ children, ...props }: any) => (
-      <h2 className="mt-7 text-3xl font-semibold text-slate-100" {...props}>## {children}</h2>
+      <h2 className="mb-7 text-3xl font-semibold text-slate-100" {...props}>## {children}</h2>
     ),
     h3: ({ children, ...props }: any) => (
-      <h3 className="mt-7 text-2xl font-semibold text-slate-100" {...props}>### {children}</h3>
+      <h3 className="mt-5 text-2xl font-semibold text-slate-100" {...props}>### {children}</h3>
     ),
     h4: ({ children, ...props }: any) => (
       <h4 className="mt-6 text-xl font-semibold text-slate-100" {...props}>#### {children}</h4>
