@@ -46,11 +46,15 @@ function PreviewPageContent() {
     }
   }, [previewParam]);
 
-  const { content, assets = {}, sourcePath } = parsed as {
-    content: string;
+  const payload = parsed as {
+    content?: string;
     assets?: Record<string, string>;
     sourcePath?: string;
-  };
+  } | null;
+
+  const content = payload?.content ?? '';
+  const assets = payload?.assets ?? {};
+  const sourcePath = payload?.sourcePath ?? null;
 
   const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
   const frontmatterContent = frontmatterMatch?.[1] ?? '';
