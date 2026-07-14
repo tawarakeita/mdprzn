@@ -200,57 +200,57 @@ function PreviewPageContent() {
 
   const markdownComponents: Record<string, any> = {
     h1: ({ children, ...props }: any) => (
-      <h1 className="mb-8 text-4xl font-bold text-slate-50" {...props}>
+      <h1 className="mb-8 text-5xl font-bold text-slate-50" {...props}>
         # {children}
       </h1>
     ),
     h2: ({ children, ...props }: any) => (
-      <h2 className="mb-7 text-3xl font-bold text-slate-200" {...props}>
+      <h2 className="mb-7 text-4xl font-bold text-slate-200" {...props}>
         ## {children}
       </h2>
     ),
     h3: ({ children, ...props }: any) => (
-      <h3 className="mt-6 text-2xl font-semibold text-slate-300" {...props}>
+      <h3 className="mt-6 text-3xl font-semibold text-slate-300" {...props}>
         ### {children}
       </h3>
     ),
     h4: ({ children, ...props }: any) => (
-      <h4 className="mt-5 text-xl font-semibold text-slate-400" {...props}>
+      <h4 className="mt-5 text-2xl font-semibold text-slate-400" {...props}>
         #### {children}
       </h4>
     ),
     h5: ({ children, ...props }: any) => (
-      <h5 className="mt-4 text-lg font-semibold text-slate-400" {...props}>
+      <h5 className="mt-4 text-xl font-semibold text-slate-400" {...props}>
         ##### {children}
       </h5>
     ),
     h6: ({ children, ...props }: any) => (
-      <h6 className="mt-3 text-base font-semibold text-slate-500" {...props}>
+      <h6 className="mt-3 text-lg font-semibold text-slate-500" {...props}>
         ###### {children}
       </h6>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote className="my-6 border-l-4 border-slate-600 bg-slate-900/30 px-4 py-3 italic text-slate-400" {...props}>{children}</blockquote>
+      <blockquote className="my-6 border-l-4 border-slate-600 bg-slate-900/30 px-4 py-3 italic text-lg text-slate-400" {...props}>{children}</blockquote>
     ),
     p: ({ children, ...props }: any) => (
-      <p className="text-base leading-relaxed text-slate-300" {...props}>{children}</p>
+      <p className="text-lg leading-relaxed text-slate-300" {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: any) => (
-      <ul className="mt-4 list-disc pl-6 text-base leading-relaxed text-slate-300" {...props}>{children}</ul>
+      <ul className="mt-4 list-disc pl-6 text-lg leading-relaxed text-slate-300" {...props}>{children}</ul>
     ),
     ol: ({ children, ...props }: any) => (
-      <ol className="mt-4 list-decimal pl-6 text-base leading-relaxed text-slate-300" {...props}>{children}</ol>
+      <ol className="mt-4 list-decimal pl-6 text-lg leading-relaxed text-slate-300" {...props}>{children}</ol>
     ),
     li: ({ children, ...props }: any) => (
-      <li className="mt-2 text-base leading-relaxed text-slate-300" {...props}>
+      <li className="mt-2 text-lg leading-relaxed text-slate-300" {...props}>
         {children}
       </li>
     ),
     pre: ({ children, ...props }: any) => (
-      <pre className="mt-5 overflow-x-auto rounded border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-300" {...props}>{children}</pre>
+      <pre className="mt-5 overflow-x-auto rounded border border-slate-700 bg-slate-900/60 p-4 text-base text-slate-300" {...props}>{children}</pre>
     ),
     code: ({ children, ...props }: any) => (
-      <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-sm text-slate-200 font-mono" {...props}>{children}</code>
+      <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-base text-slate-200 font-mono" {...props}>{children}</code>
     ),
     img: renderImage,
   };
