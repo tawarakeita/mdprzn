@@ -160,6 +160,49 @@ function PreviewPageContent() {
     return <img {...props} alt={alt ?? ''} src={resolvedSrc ?? src} />;
   };
 
+  const markdownComponents: Record<string, any> = {
+    h1: ({ children, ...props }: any) => (
+      <h1 className="mt-8 text-4xl font-semibold text-slate-100" {...props}># {children}</h1>
+    ),
+    h2: ({ children, ...props }: any) => (
+      <h2 className="mt-7 text-3xl font-semibold text-slate-100" {...props}>## {children}</h2>
+    ),
+    h3: ({ children, ...props }: any) => (
+      <h3 className="mt-7 text-2xl font-semibold text-slate-100" {...props}>### {children}</h3>
+    ),
+    h4: ({ children, ...props }: any) => (
+      <h4 className="mt-6 text-xl font-semibold text-slate-100" {...props}>#### {children}</h4>
+    ),
+    h5: ({ children, ...props }: any) => (
+      <h5 className="mt-5 text-lg font-semibold text-slate-200" {...props}>##### {children}</h5>
+    ),
+    h6: ({ children, ...props }: any) => (
+      <h6 className="mt-5 text-base font-semibold text-slate-200" {...props}>###### {children}</h6>
+    ),
+    blockquote: ({ children, ...props }: any) => (
+      <blockquote className="my-6 rounded-xl border border-zinc-700 bg-zinc-950 p-4 font-mono text-sm text-zinc-200" {...props}>{children}</blockquote>
+    ),
+    p: ({ children, ...props }: any) => (
+      <p className="mt-5 text-base leading-8 text-zinc-100" {...props}>{children}</p>
+    ),
+    ul: ({ children, ...props }: any) => (
+      <ul className="mt-4 list-disc pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ul>
+    ),
+    ol: ({ children, ...props }: any) => (
+      <ol className="mt-4 list-decimal pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ol>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li className="mt-2 text-base leading-8 text-zinc-100" {...props}>{children}</li>
+    ),
+    pre: ({ children, ...props }: any) => (
+      <pre className="mt-5 overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-200" {...props}>{children}</pre>
+    ),
+    code: ({ children, ...props }: any) => (
+      <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-sm text-cyan-200" {...props}>{children}</code>
+    ),
+    img: renderImage,
+  };
+
   const handleToggleFullscreen = async () => {
     if (!document.fullscreenElement) {
       await document.documentElement.requestFullscreen?.();
@@ -219,8 +262,8 @@ function PreviewPageContent() {
               </div>
             ) : null}
 
-            <div className="min-h-[60vh] w-full text-sm leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
-              <ReactMarkdown components={{ img: renderImage }} remarkPlugins={[remarkGfm]}>{activeSlide}</ReactMarkdown>
+            <div className="min-h-[60vh] w-full space-y-6 text-base leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
+              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{activeSlide}</ReactMarkdown>
             </div>
           </div>
         </div>
