@@ -172,59 +172,55 @@ function PreviewPageContent() {
   };
 
   return (
-    <div className={`min-h-screen bg-zinc-950 px-6 py-6 text-zinc-100 ${isFullscreen ? 'p-0' : ''}`}>
-      <div className={isFullscreen ? 'flex h-screen flex-col' : 'mx-auto max-w-6xl'}>
-        <div className={`flex items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/85 px-4 py-3 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] ${isFullscreen ? 'rounded-none border-x-0 border-t-0' : 'mb-6'}`}>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-zinc-500">Presentation Preview</p>
-            <h1 className="text-lg font-semibold text-zinc-100">プレゼンテーション表示</h1>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
-              onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
-              type="button"
-            >
-              ← 前へ
-            </button>
-            <span className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400">
-              {safeSlideIndex + 1} / {displaySlides.length}
-            </span>
-            <button
-              className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
-              onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
-              type="button"
-            >
-              次へ →
-            </button>
-            <button
-              className="rounded-lg border border-cyan-700/60 bg-cyan-950/70 px-3 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-900"
-              onClick={handleToggleFullscreen}
-              type="button"
-            >
-              {isFullscreen ? '全画面終了' : '全画面で開始'}
-            </button>
-            <Link className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800" href="/">
-              アップロードに戻る
-            </Link>
-          </div>
+    <div className={`flex h-screen flex-col bg-zinc-950 text-zinc-100 ${isFullscreen ? 'p-0' : 'p-6'}`}>
+      <div className={`flex items-center justify-between gap-3 ${isFullscreen ? 'px-4 py-3' : 'mx-auto max-w-6xl px-4 py-3'}`}>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-zinc-500">Presentation Preview</p>
+          <h1 className="text-lg font-semibold text-zinc-100">プレゼンテーション表示</h1>
         </div>
 
-        <div className={`flex-1 ${isFullscreen ? 'p-3' : ''}`}>
-          <div className={`flex h-full items-center justify-center rounded-2xl border border-zinc-800 bg-black p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] ${isFullscreen ? 'rounded-none border-none p-8' : ''}`}>
-            <div className="w-full max-w-5xl overflow-auto">
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-8 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
-                {!isMarpCompatible ? (
-                  <div className="mb-5 rounded-xl border border-amber-800/70 bg-amber-950/40 px-4 py-3 text-sm text-amber-200">
-                    Marp対応の判定は <span className="font-semibold">marp: true</span> を見るようにしています。今の内容は Marp 非対応として、通常の Markdown 表示で表示します。
-                  </div>
-                ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
+            onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
+            type="button"
+          >
+            ← 前へ
+          </button>
+          <span className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400">
+            {safeSlideIndex + 1} / {displaySlides.length}
+          </span>
+          <button
+            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
+            onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
+            type="button"
+          >
+            次へ →
+          </button>
+          <button
+            className="rounded-lg border border-cyan-700/60 bg-cyan-950/70 px-3 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-900"
+            onClick={handleToggleFullscreen}
+            type="button"
+          >
+            {isFullscreen ? '全画面終了' : '全画面で開始'}
+          </button>
+          <Link className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800" href="/">
+            アップロードに戻る
+          </Link>
+        </div>
+      </div>
 
-                <div className="space-y-4 text-sm leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
-                  <ReactMarkdown components={{ img: renderImage }} remarkPlugins={[remarkGfm]}>{activeSlide}</ReactMarkdown>
-                </div>
+      <div className="flex-1 overflow-hidden px-4 pb-4">
+        <div className="flex h-full items-center justify-center overflow-auto">
+          <div className="w-full max-w-6xl">
+            {!isMarpCompatible ? (
+              <div className="mb-6 text-sm text-amber-200">
+                Marp対応の判定は <span className="font-semibold">marp: true</span> を見るようにしています。今の内容は Marp 非対応として、通常の Markdown 表示で表示します。
               </div>
+            ) : null}
+
+            <div className="min-h-[60vh] w-full text-sm leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
+              <ReactMarkdown components={{ img: renderImage }} remarkPlugins={[remarkGfm]}>{activeSlide}</ReactMarkdown>
             </div>
           </div>
         </div>
