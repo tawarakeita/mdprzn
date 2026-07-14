@@ -20,7 +20,8 @@ function PresentationViewer({ content }: { content: string }) {
   }
 
   const frontmatterMatch = normalizedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
-  const hasMarpFrontmatter = Boolean(frontmatterMatch?.[1]?.includes('marp: true'));
+  const frontmatterContent = frontmatterMatch?.[1] ?? '';
+  const isMarpCompatible = /^\s*marp\s*:\s*true\s*$/im.test(frontmatterContent);
   const body = frontmatterMatch
     ? normalizedContent.replace(frontmatterMatch[0], '').trim()
     : normalizedContent;
@@ -29,10 +30,16 @@ function PresentationViewer({ content }: { content: string }) {
     .map((slide) => slide.trim())
     .filter(Boolean);
   const displaySlides = slides.length > 0 ? slides : [body];
-  const isFallbackMode = !hasMarpFrontmatter && displaySlides.length <= 1;
+  const isFallbackMode = !isMarpCompatible;
 
   return (
     <div className="space-y-4">
+      {!isMarpCompatible ? (
+        <div className="rounded-xl border border-amber-800/70 bg-amber-950/40 px-4 py-3 text-sm text-amber-200">
+          Marp対応の判定は <span className="font-semibold">marp: true</span> を見るようにしています。今の内容は Marp 非対応として、通常の Markdown 表示で表示します。
+        </div>
+      ) : null}
+
       {displaySlides.map((slide, index) => (
         <div
           className="rounded-2xl border border-zinc-800 bg-black p-6 text-zinc-100 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]"
@@ -42,8 +49,8 @@ function PresentationViewer({ content }: { content: string }) {
             <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-zinc-500">
               Slide {index + 1}
             </span>
-            <span className="rounded-full border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-[10px] uppercase tracking-[0.25em] text-zinc-400">
-              {isFallbackMode ? 'Fallback view' : 'Marp-style preview'}
+            <span className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.25em] ${isFallbackMode ? 'border-amber-800 bg-amber-950/70 text-amber-200' : 'border-zinc-800 bg-zinc-950/80 text-zinc-400'}`}>
+              {isFallbackMode ? 'Marp non-compatible' : 'Marp-compatible preview'}
             </span>
           </div>
 
