@@ -164,6 +164,8 @@ export default function FileUpload01() {
       uploadedFiles[uploadedFiles.length - 1];
 
     if (targetFile) {
+      setActiveFileName(targetFile.name);
+      setPreviewError(null);
       void loadPreviewForFile(targetFile);
     }
   };
@@ -312,8 +314,9 @@ export default function FileUpload01() {
             <div className="flex gap-2">
               <Button
                 className="h-9 px-4 font-medium text-sm"
-                disabled={!uploadedFiles.length || isPreviewLoading}
+                disabled={!uploadedFiles.length}
                 onClick={showSelectedPresentation}
+                type="button"
               >
                 {isPreviewLoading ? '読み込み中…' : 'プレゼンテーションを表示'}
               </Button>
