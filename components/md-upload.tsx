@@ -1,25 +1,9 @@
 'use client';
 
-import { HelpCircle, Trash2, Upload } from 'lucide-react';
+import { Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 export default function FileUpload01() {
@@ -82,78 +66,11 @@ export default function FileUpload01() {
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-balance font-medium text-foreground text-lg">
-                  Create a new project
+                  Markdownファイルをアップロード
                 </h2>
                 <p className="mt-1 text-pretty text-muted-foreground text-sm">
-                  Drag and drop files to create a new project.
+                  Marpに対応したMarkdownファイル(.md)をアップロードして、プレゼンテーションを表示します。
                 </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-2 px-6 pb-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="mb-2" htmlFor="projectName">
-                  Project name
-                </Label>
-                <Input
-                  defaultValue="Open Source Stripe"
-                  id="projectName"
-                  type="text"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2" htmlFor="projectLead">
-                  Project lead
-                </Label>
-                <Select
-                  defaultValue="1"
-                  items={{
-                    '1': 'Ephraim Duncan',
-                    '2': 'Lucas Smith',
-                    '3': 'Timur Ercan',
-                  }}
-                >
-                  <SelectTrigger className="w-full ps-2" id="projectLead">
-                    <SelectValue placeholder="Select project lead" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="1">
-                        <img
-                          alt="Ephraim Duncan"
-                          className="size-5 rounded"
-                          height={20}
-                          src="https://blocks.so/avatar-01.png"
-                          width={20}
-                        />
-                        <span className="truncate">Ephraim Duncan</span>
-                      </SelectItem>
-                      <SelectItem value="2">
-                        <img
-                          alt="Lucas Smith"
-                          className="size-5 rounded"
-                          height={20}
-                          src="https://blocks.so/avatar-03.png"
-                          width={20}
-                        />
-                        <span className="truncate">Lucas Smith</span>
-                      </SelectItem>
-                      <SelectItem value="3">
-                        <img
-                          alt="Timur Ercan"
-                          className="size-5 rounded"
-                          height={20}
-                          src="https://blocks.so/avatar-02.jpg"
-                          width={20}
-                        />
-                        <span className="truncate">Timur Ercan</span>
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -169,21 +86,20 @@ export default function FileUpload01() {
                 <Upload className="h-5 w-5 text-muted-foreground" />
               </div>
               <p className="text-pretty font-medium text-foreground text-sm">
-                Upload a project image
+                Markdownファイルをドラッグ&ドロップしてアップロード
               </p>
               <p className="mt-1 text-pretty text-muted-foreground text-sm">
-                or,{' '}
+                または{' '}
                 <label
                   className="cursor-pointer font-medium text-primary hover:text-primary/90"
                   htmlFor="fileUpload"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  click to browse
+                  クリックしてファイルを選択
                 </label>{' '}
-                (4MB max)
               </p>
               <input
-                accept="image/*"
+                accept=".md"
                 className="hidden"
                 id="fileUpload"
                 onChange={(e) => handleFileSelect(e.target.files)}
@@ -211,18 +127,10 @@ export default function FileUpload01() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="row-span-2 flex h-14 w-18 items-center justify-center self-start overflow-hidden rounded-sm bg-muted">
-                      <img
-                        alt={file.name}
-                        className="h-full w-full object-cover"
-                        src={imageUrl}
-                      />
-                    </div>
-
                     <div className="flex-1 pr-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="max-w-[250px] truncate text-foreground text-sm">
+                          <span className="max-w-62.5 truncate text-foreground text-sm">
                             {file.name}
                           </span>
                           <span className="whitespace-nowrap text-muted-foreground text-sm">
@@ -259,44 +167,9 @@ export default function FileUpload01() {
             })}
           </div>
 
-          <div className="flex items-center justify-between rounded-b-lg border-border border-t bg-muted px-6 py-3">
-            <TooltipProvider delay={0}>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      className="flex items-center text-muted-foreground hover:text-foreground"
-                      size="sm"
-                      variant="ghost"
-                    />
-                  }
-                >
-                  <HelpCircle className="mr-1 h-4 w-4" />
-                  Need help?
-                </TooltipTrigger>
-                <TooltipContent className="border bg-background py-3 text-foreground">
-                  <div className="space-y-1">
-                    <p className="text-pretty font-medium text-[13px]">
-                      Need assistance?
-                    </p>
-                    <p className="max-w-[200px] text-pretty text-muted-foreground text-xs dark:text-muted-background">
-                      Upload project images by dragging and dropping files or
-                      using the file browser. Supported formats: JPG, PNG, SVG.
-                      Maximum file size: 4MB.
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
+          <div className="flex items-center justify-end rounded-b-lg border-border border-t bg-muted px-6 py-3">
             <div className="flex gap-2">
-              <Button
-                className="h-9 px-4 font-medium text-sm"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button className="h-9 px-4 font-medium text-sm">Continue</Button>
+              <Button className="h-9 px-4 font-medium text-sm">プレゼンテーションを表示</Button>
             </div>
           </div>
         </CardContent>
