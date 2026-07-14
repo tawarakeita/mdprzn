@@ -270,62 +270,66 @@ function PreviewPageContent() {
   return (
     <div className={`relative flex h-screen flex-col bg-slate-100 ${isFullscreen ? 'p-0' : ''}`}>
       {/* Simple header */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
-        <div className="text-sm text-slate-600">Presentation Preview</div>
+      {!isFullscreen && (
+        <>
+          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
+            <div className="text-sm text-slate-600">Presentation Preview</div>
 
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-slate-600">Slide</span>
-          <span className="rounded bg-slate-100 px-3 py-1 font-semibold text-slate-800">
-            {safeSlideIndex + 1} / {displaySlides.length}
-          </span>
-        </div>
-      </div>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-slate-600">Slide</span>
+              <span className="rounded bg-slate-100 px-3 py-1 font-semibold text-slate-800">
+                {safeSlideIndex + 1} / {displaySlides.length}
+              </span>
+            </div>
+          </div>
 
-      {/* Navigation bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-6 py-3">
-        <div className="flex gap-2">
-          <button
-            className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
-            type="button"
-          >
-            ← Prev
-          </button>
-          <button
-            className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
-            type="button"
-          >
-            Next →
-          </button>
-        </div>
+          {/* Navigation bar */}
+          <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-6 py-3">
+            <div className="flex gap-2">
+              <button
+                className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
+                type="button"
+              >
+                ← Prev
+              </button>
+              <button
+                className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
+                type="button"
+              >
+                Next →
+              </button>
+            </div>
 
-        <div className="flex gap-2">
-          <button
-            className="rounded border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-100"
-            onClick={handleToggleFullscreen}
-            type="button"
-          >
-            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          </button>
-          <Link className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" href="/">
-            Back
-          </Link>
-        </div>
-      </div>
+            <div className="flex gap-2">
+              <button
+                className="rounded border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-100"
+                onClick={handleToggleFullscreen}
+                type="button"
+              >
+                {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              </button>
+              <Link className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" href="/">
+                Back
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Content area with terminal-style slide */}
-      <div className="flex-1 overflow-hidden bg-slate-50 px-8 py-8">
+      <div className={`flex-1 overflow-hidden ${isFullscreen ? 'bg-slate-950 p-0' : 'bg-slate-50 px-8 py-8'}`}>
         <div className="flex h-full items-center justify-center overflow-auto">
-          <div className="w-full max-w-4xl">
-            {!isMarpCompatible ? (
+          <div className={isFullscreen ? 'h-full w-full' : 'w-full max-w-4xl'}>
+            {!isFullscreen && !isMarpCompatible && (
               <div className="mb-6 rounded border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-800">
                 ⚠ Marp detected: <span className="font-semibold">marp: true</span> — rendering as standard Markdown
               </div>
-            ) : null}
+            )}
 
             {/* Terminal-style slide container */}
-            <div className="rounded-lg border-2 border-slate-900 bg-slate-950 p-8 font-mono shadow-2xl">
+            <div className={`rounded-lg border-2 border-slate-900 bg-slate-950 p-8 font-mono shadow-2xl ${isFullscreen ? 'h-full border-0 rounded-none p-12' : ''}`}>
               <div className="min-h-[60vh] w-full space-y-6 leading-relaxed text-slate-200 [&_a]:text-cyan-400 [&_a]:underline [&_a]:hover:text-cyan-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded [&_img]:border [&_img]:border-slate-700 [&_img]:shadow-lg [&_img]:shadow-cyan-500/10 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-800/80 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-300 [&_td]:border [&_td]:border-slate-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-black/60 [&_pre]:p-4 [&_pre]:text-sm">
                 <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{renderedSlide}</ReactMarkdown>
               </div>
@@ -333,6 +337,17 @@ function PreviewPageContent() {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen exit hint */}
+      {isFullscreen && (
+        <button
+          className="absolute bottom-4 right-4 rounded border border-cyan-500/50 bg-slate-900/80 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800"
+          onClick={handleToggleFullscreen}
+          type="button"
+        >
+          ESC or Click to Exit
+        </button>
+      )}
     </div>
   );
 }
