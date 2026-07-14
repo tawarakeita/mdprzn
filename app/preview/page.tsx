@@ -118,6 +118,28 @@ function PreviewPageContent() {
     );
   }
 
+  const normalizePath = (path: string) =>
+    path
+      .replace(/\\/g, '/')
+      .replace(/^\.\//, '')
+      .replace(/\/+/g, '/');
+
+  const resolveRelativePath = (base: string, relative: string) => {
+    const baseSegments = base.split('/').filter(Boolean);
+    const relativeSegments = relative.split('/').filter(Boolean);
+    const stack = [...baseSegments];
+
+    relativeSegments.forEach((segment) => {
+      if (segment === '..') {
+        stack.pop();
+      } else if (segment !== '.') {
+        stack.push(segment);
+      }
+    });
+
+    return stack.join('/');
+  };
+
   const resolveAssetUrl = (src?: string | Blob) => {
     if (!src || typeof src !== 'string') {
       return undefined;
@@ -127,15 +149,19 @@ function PreviewPageContent() {
       return src;
     }
 
-    const normalizedSrc = src.replace(/\\/g, '/');
-    const sourceDir = sourcePath?.split('/').slice(0, -1).join('/') ?? '';
+    const normalizedSrc = normalizePath(src);
+    const sourceDir = normalizePath(sourcePath?.split('/').slice(0, -1).join('/') ?? '');
     const candidates = [normalizedSrc];
 
     if (sourceDir) {
       candidates.push(`${sourceDir}/${normalizedSrc}`);
+      if (normalizedSrc.startsWith('..')) {
+        candidates.push(resolveRelativePath(sourceDir, normalizedSrc));
+      }
     }
 
-    return candidates.find((candidate) => Boolean(assets[candidate])) ?? src;
+    const match = candidates.find((candidate) => Boolean(assets[candidate]));
+    return match ? assets[match] : undefined;
   };
 
   const renderImage = ({ src, alt, ...props }: ImgHTMLAttributes<HTMLImageElement>) => {
