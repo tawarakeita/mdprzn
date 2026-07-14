@@ -2,16 +2,98 @@
 
 import { Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+function PresentationViewer({ content }: { content: string }) {
+  const normalizedContent = content.replace(/\r\n/g, '\n').trim();
+
+  if (!normalizedContent) {
+    return (
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-sm text-zinc-400">
+        まだ表示するMarkdownがありません。ファイルをアップロードしてください。
+      </div>
+    );
+  }
+
+  const frontmatterMatch = normalizedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+  const hasMarpFrontmatter = Boolean(frontmatterMatch?.[1]?.includes('marp: true'));
+  const body = frontmatterMatch
+    ? normalizedContent.replace(frontmatterMatch[0], '').trim()
+    : normalizedContent;
+  const slides = body
+    .split(/\n---\s*\n?/g)
+    .map((slide) => slide.trim())
+    .filter(Boolean);
+  const displaySlides = slides.length > 0 ? slides : [body];
+  const isFallbackMode = !hasMarpFrontmatter && displaySlides.length <= 1;
+
+  return (
+    <div className="space-y-4">
+      {displaySlides.map((slide, index) => (
+        <div
+          className="rounded-2xl border border-zinc-800 bg-black p-6 text-zinc-100 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]"
+          key={`${slide.slice(0, 20)}-${index}`}
+        >
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-zinc-500">
+              Slide {index + 1}
+            </span>
+            <span className="rounded-full border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-[10px] uppercase tracking-[0.25em] text-zinc-400">
+              {isFallbackMode ? 'Fallback view' : 'Marp-style preview'}
+            </span>
+          </div>
+
+          <div className="space-y-4 text-sm leading-7 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{slide}</ReactMarkdown>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function FileUpload01() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewRequestRef = useRef(0);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
+  const [previewContent, setPreviewContent] = useState('');
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  const loadPreviewForFile = async (file: File) => {
+    const requestId = previewRequestRef.current + 1;
+    previewRequestRef.current = requestId;
+    setIsPreviewLoading(true);
+    setPreviewError(null);
+
+    try {
+      const content = await file.text();
+      if (requestId !== previewRequestRef.current) {
+        return;
+      }
+      setPreviewContent(content);
+      setActiveFileName(file.name);
+    } catch {
+      if (requestId !== previewRequestRef.current) {
+        return;
+      }
+      setPreviewContent('');
+      setPreviewError('このファイルの内容を読み込めませんでした。');
+      setActiveFileName(file.name);
+    } finally {
+      if (requestId === previewRequestRef.current) {
+        setIsPreviewLoading(false);
+      }
+    }
+  };
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
@@ -19,7 +101,6 @@ export default function FileUpload01() {
     const newFiles = Array.from(files);
     setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-    // Simulate upload progress for each file
     newFiles.forEach((file) => {
       let progress = 0;
       const interval = setInterval(() => {
@@ -34,6 +115,11 @@ export default function FileUpload01() {
         }));
       }, 300);
     });
+
+    const latestFile = newFiles[newFiles.length - 1];
+    if (latestFile) {
+      void loadPreviewForFile(latestFile);
+    }
   };
 
   const handleBoxClick = () => {
@@ -56,11 +142,28 @@ export default function FileUpload01() {
       delete newProgresses[filename];
       return newProgresses;
     });
+
+    if (activeFileName === filename) {
+      setPreviewContent('');
+      setPreviewError(null);
+      setActiveFileName(null);
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const showSelectedPresentation = () => {
+    const targetFile =
+      uploadedFiles.find((file) => file.name === activeFileName) ??
+      uploadedFiles[uploadedFiles.length - 1];
+
+    if (targetFile) {
+      void loadPreviewForFile(targetFile);
+    }
   };
 
   return (
     <div className="flex items-center justify-center p-10">
-      <Card className="mx-auto w-full max-w-lg rounded-lg bg-background p-0 shadow-md">
+      <Card className="mx-auto w-full max-w-5xl rounded-lg bg-background p-0 shadow-md">
         <CardContent className="p-0">
           <div className="p-6 pb-4">
             <div className="flex items-start justify-between">
@@ -116,15 +219,10 @@ export default function FileUpload01() {
             )}
           >
             {uploadedFiles.map((file, index) => {
-              const imageUrl = URL.createObjectURL(file);
-
               return (
                 <div
                   className="flex flex-col rounded-lg border border-border p-2"
                   key={file.name + index}
-                  onLoad={() => {
-                    return () => URL.revokeObjectURL(imageUrl);
-                  }}
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1 pr-1">
@@ -167,9 +265,51 @@ export default function FileUpload01() {
             })}
           </div>
 
+          {uploadedFiles.length > 0 ? (
+            <div className="mx-6 mb-5 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-inner">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-zinc-100 text-sm">
+                    プレゼンテーションプレビュー
+                  </p>
+                  <p className="text-zinc-500 text-xs">
+                    黒基調の端末風表示で、見出し・表・画像をそのまま表示します。
+                  </p>
+                </div>
+                {activeFileName ? (
+                  <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
+                    {activeFileName}
+                  </span>
+                ) : null}
+              </div>
+
+              {isPreviewLoading ? (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 text-sm text-zinc-400">
+                  Markdownを読み込んでいます...
+                </div>
+              ) : previewError ? (
+                <div className="rounded-xl border border-amber-900/50 bg-amber-950/30 p-6 text-sm text-amber-200">
+                  {previewError}
+                </div>
+              ) : previewContent ? (
+                <PresentationViewer content={previewContent} />
+              ) : (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 text-sm text-zinc-400">
+                  ここにプレゼンテーションが表示されます。
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-end rounded-b-lg border-border border-t bg-muted px-6 py-3">
             <div className="flex gap-2">
-              <Button className="h-9 px-4 font-medium text-sm">プレゼンテーションを表示</Button>
+              <Button
+                className="h-9 px-4 font-medium text-sm"
+                disabled={!uploadedFiles.length || isPreviewLoading}
+                onClick={showSelectedPresentation}
+              >
+                {isPreviewLoading ? '読み込み中…' : 'プレゼンテーションを表示'}
+              </Button>
             </div>
           </div>
         </CardContent>
