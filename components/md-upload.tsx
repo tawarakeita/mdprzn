@@ -1,14 +1,29 @@
 'use client';
 
 import { Trash2, Upload } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type ImgHTMLAttributes, type InputHTMLAttributes } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-function PresentationViewer({ content }: { content: string }) {
+type UploadedEntry = {
+  file: File;
+  relativePath: string;
+};
+
+type PresentationViewerProps = {
+  content: string;
+  assetUrlMap: Record<string, string>;
+  sourcePath: string | null;
+};
+
+function PresentationViewer({
+  content,
+  assetUrlMap,
+  sourcePath,
+}: PresentationViewerProps) {
   const normalizedContent = content.replace(/\r\n/g, '\n').trim();
 
   if (!normalizedContent) {
@@ -31,6 +46,57 @@ function PresentationViewer({ content }: { content: string }) {
     .filter(Boolean);
   const displaySlides = slides.length > 0 ? slides : [body];
   const isFallbackMode = !isMarpCompatible;
+
+  const resolveAssetUrl = (src?: string | Blob) => {
+    if (!src || typeof src !== 'string') {
+      return undefined;
+    }
+
+    if (
+      /^https?:\/\//i.test(src) ||
+      src.startsWith('data:') ||
+      src.startsWith('blob:') ||
+      src.startsWith('/')
+    ) {
+      return src;
+    }
+
+    const normalizedSrc = src.replace(/\\/g, '/');
+    const sourceDir = sourcePath?.split('/').slice(0, -1).join('/') ?? '';
+    const candidates = [normalizedSrc];
+
+    if (sourceDir) {
+      candidates.push(`${sourceDir}/${normalizedSrc}`);
+    }
+
+    return candidates.find((candidate) => Boolean(assetUrlMap[candidate])) ?? src;
+  };
+
+  const renderImage = ({
+    src,
+    alt,
+    ...props
+  }: ImgHTMLAttributes<HTMLImageElement>) => {
+    const resolvedSrc = resolveAssetUrl(src);
+    const isLocalAsset =
+      typeof src === 'string' &&
+      !src.startsWith('http://') &&
+      !src.startsWith('https://') &&
+      !src.startsWith('data:') &&
+      !src.startsWith('blob:') &&
+      !src.startsWith('/');
+
+    if (isLocalAsset && !resolvedSrc) {
+      return (
+        <div className="my-4 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/70 p-4 text-sm text-zinc-400">
+          画像ファイルが見つかりません: {src}
+        </div>
+      );
+    }
+
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} alt={alt ?? ''} src={resolvedSrc ?? src} />;
+  };
 
   return (
     <div className="space-y-4">
@@ -55,7 +121,12 @@ function PresentationViewer({ content }: { content: string }) {
           </div>
 
           <div className="space-y-4 text-sm leading-7 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{slide}</ReactMarkdown>
+            <ReactMarkdown
+              components={{ img: renderImage }}
+              remarkPlugins={[remarkGfm]}
+            >
+              {slide}
+            </ReactMarkdown>
           </div>
         </div>
       ))}
@@ -66,16 +137,41 @@ function PresentationViewer({ content }: { content: string }) {
 export default function FileUpload01() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRequestRef = useRef(0);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedEntry[]>([]);
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
+  const [assetUrlMap, setAssetUrlMap] = useState<Record<string, string>>({});
   const [previewContent, setPreviewContent] = useState('');
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const folderUploadProps = {
+    directory: '',
+    webkitdirectory: '',
+  } as InputHTMLAttributes<HTMLInputElement>;
 
-  const loadPreviewForFile = async (file: File) => {
+  const getRelativePath = (file: File) => {
+    const webkitRelativePath = (file as File & { webkitRelativePath?: string })
+      .webkitRelativePath;
+    return webkitRelativePath ? webkitRelativePath.replace(/\\/g, '/') : file.name;
+  };
+
+  const readAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+        reject(new Error('Failed to read file'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+
+  const loadPreviewForFile = async (file: File, sourcePath?: string) => {
     const requestId = previewRequestRef.current + 1;
     previewRequestRef.current = requestId;
     setIsPreviewLoading(true);
@@ -87,14 +183,14 @@ export default function FileUpload01() {
         return;
       }
       setPreviewContent(content);
-      setActiveFileName(file.name);
+      setActiveFilePath(sourcePath ?? getRelativePath(file));
     } catch {
       if (requestId !== previewRequestRef.current) {
         return;
       }
       setPreviewContent('');
       setPreviewError('このファイルの内容を読み込めませんでした。');
-      setActiveFileName(file.name);
+      setActiveFilePath(sourcePath ?? getRelativePath(file));
     } finally {
       if (requestId === previewRequestRef.current) {
         setIsPreviewLoading(false);
@@ -102,13 +198,42 @@ export default function FileUpload01() {
     }
   };
 
-  const handleFileSelect = (files: FileList | null) => {
+  const handleFileSelect = async (files: FileList | null) => {
     if (!files) return;
 
-    const newFiles = Array.from(files);
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
+    const newEntries = Array.from(files, (file) => ({
+      file,
+      relativePath: getRelativePath(file),
+    }));
 
-    newFiles.forEach((file) => {
+    setUploadedFiles((prev) => [...prev, ...newEntries]);
+
+    const imageEntries = await Promise.all(
+      newEntries.map(async ({ file, relativePath }) => {
+        const isImageFile =
+          file.type.startsWith('image/') ||
+          /\.(png|jpe?g|gif|svg|webp|bmp|avif|ico)$/i.test(file.name);
+
+        if (!isImageFile) {
+          return null;
+        }
+
+        try {
+          const dataUrl = await readAsDataUrl(file);
+          return [relativePath, dataUrl] as const;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    const nextAssetMap = Object.fromEntries(
+      imageEntries.filter(Boolean) as Array<[string, string]>
+    );
+
+    setAssetUrlMap((prev) => ({ ...prev, ...nextAssetMap }));
+
+    newEntries.forEach(({ relativePath }) => {
       let progress = 0;
       const interval = setInterval(() => {
         progress += Math.random() * 10;
@@ -118,14 +243,18 @@ export default function FileUpload01() {
         }
         setFileProgresses((prev) => ({
           ...prev,
-          [file.name]: Math.min(progress, 100),
+          [relativePath]: Math.min(progress, 100),
         }));
       }, 300);
     });
 
-    const latestFile = newFiles[newFiles.length - 1];
-    if (latestFile) {
-      void loadPreviewForFile(latestFile);
+    const markdownEntry = newEntries.find(({ file }) =>
+      file.name.toLowerCase().endsWith('.md')
+    );
+    const previewEntry = markdownEntry ?? newEntries[newEntries.length - 1];
+
+    if (previewEntry) {
+      void loadPreviewForFile(previewEntry.file, previewEntry.relativePath);
     }
   };
 
@@ -139,35 +268,42 @@ export default function FileUpload01() {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    handleFileSelect(e.dataTransfer.files);
+    void handleFileSelect(e.dataTransfer.files);
   };
 
-  const removeFile = (filename: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.name !== filename));
+  const removeFile = (relativePath: string) => {
+    setUploadedFiles((prev) =>
+      prev.filter((entry) => entry.relativePath !== relativePath)
+    );
     setFileProgresses((prev) => {
       const newProgresses = { ...prev };
-      delete newProgresses[filename];
+      delete newProgresses[relativePath];
       return newProgresses;
     });
 
-    if (activeFileName === filename) {
+    if (activeFilePath === relativePath) {
       setPreviewContent('');
       setPreviewError(null);
-      setActiveFileName(null);
+      setActiveFilePath(null);
       setIsPreviewLoading(false);
     }
   };
 
   const showSelectedPresentation = () => {
-    const targetFile =
-      uploadedFiles.find((file) => file.name === activeFileName) ??
-      uploadedFiles[uploadedFiles.length - 1];
+    const targetEntry =
+      uploadedFiles.find(
+        (entry) =>
+          entry.relativePath === activeFilePath || entry.file.name === activeFilePath
+      ) ?? uploadedFiles[uploadedFiles.length - 1];
 
-    if (targetFile) {
-      setActiveFileName(targetFile.name);
+    if (targetEntry) {
       setPreviewError(null);
-      void loadPreviewForFile(targetFile);
+      void loadPreviewForFile(targetEntry.file, targetEntry.relativePath);
     }
+  };
+
+  const getDisplayLabel = (relativePath: string) => {
+    return relativePath.split('/').pop() ?? relativePath;
   };
 
   return (
@@ -181,7 +317,7 @@ export default function FileUpload01() {
                   Markdownファイルをアップロード
                 </h2>
                 <p className="mt-1 text-pretty text-muted-foreground text-sm">
-                  Marpに対応したMarkdownファイル(.md)をアップロードして、プレゼンテーションを表示します。
+                  Markdownと画像を含むフォルダをアップロードすると、画像付きのプレゼンテーションをそのまま表示できます。
                 </p>
               </div>
             </div>
@@ -198,7 +334,7 @@ export default function FileUpload01() {
                 <Upload className="h-5 w-5 text-muted-foreground" />
               </div>
               <p className="text-pretty font-medium text-foreground text-sm">
-                Markdownファイルをドラッグ&ドロップしてアップロード
+                Markdownファイルまたはフォルダをドラッグ&ドロップしてアップロード
               </p>
               <p className="mt-1 text-pretty text-muted-foreground text-sm">
                 または{' '}
@@ -207,14 +343,15 @@ export default function FileUpload01() {
                   htmlFor="fileUpload"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  クリックしてファイルを選択
+                  クリックしてファイルまたはフォルダを選択
                 </label>{' '}
               </p>
               <input
-                accept=".md"
+                {...folderUploadProps}
                 className="hidden"
                 id="fileUpload"
-                onChange={(e) => handleFileSelect(e.target.files)}
+                multiple
+                onChange={(e) => void handleFileSelect(e.target.files)}
                 ref={fileInputRef}
                 type="file"
               />
@@ -227,26 +364,26 @@ export default function FileUpload01() {
               uploadedFiles.length > 0 ? 'mt-4' : ''
             )}
           >
-            {uploadedFiles.map((file, index) => {
+            {uploadedFiles.map((entry, index) => {
               return (
                 <div
                   className="flex flex-col rounded-lg border border-border p-2"
-                  key={file.name + index}
+                  key={entry.relativePath + index}
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1 pr-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="max-w-62.5 truncate text-foreground text-sm">
-                            {file.name}
+                            {getDisplayLabel(entry.relativePath)}
                           </span>
                           <span className="whitespace-nowrap text-muted-foreground text-sm">
-                            {Math.round(file.size / 1024)} KB
+                            {Math.round(entry.file.size / 1024)} KB
                           </span>
                         </div>
                         <Button
                           className="bg-transparent! hover:text-red-500"
-                          onClick={() => removeFile(file.name)}
+                          onClick={() => removeFile(entry.relativePath)}
                           size="icon-sm"
                           variant="ghost"
                         >
@@ -259,12 +396,12 @@ export default function FileUpload01() {
                           <div
                             className="h-full bg-primary"
                             style={{
-                              width: `${fileProgresses[file.name] || 0}%`,
+                              width: `${fileProgresses[entry.relativePath] || 0}%`,
                             }}
                           />
                         </div>
                         <span className="whitespace-nowrap text-muted-foreground text-xs">
-                          {Math.round(fileProgresses[file.name] || 0)}%
+                          {Math.round(fileProgresses[entry.relativePath] || 0)}%
                         </span>
                       </div>
                     </div>
@@ -282,12 +419,12 @@ export default function FileUpload01() {
                     プレゼンテーションプレビュー
                   </p>
                   <p className="text-zinc-500 text-xs">
-                    黒基調の端末風表示で、見出し・表・画像をそのまま表示します。
+                    フォルダ内の画像も相対パスで読み込み、黒基調の端末風表示に反映します。
                   </p>
                 </div>
-                {activeFileName ? (
+                {activeFilePath ? (
                   <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
-                    {activeFileName}
+                    {getDisplayLabel(activeFilePath)}
                   </span>
                 ) : null}
               </div>
@@ -301,7 +438,11 @@ export default function FileUpload01() {
                   {previewError}
                 </div>
               ) : previewContent ? (
-                <PresentationViewer content={previewContent} />
+                <PresentationViewer
+                  assetUrlMap={assetUrlMap}
+                  content={previewContent}
+                  sourcePath={activeFilePath}
+                />
               ) : (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 text-sm text-zinc-400">
                   ここにプレゼンテーションが表示されます。
