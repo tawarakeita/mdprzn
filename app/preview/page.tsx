@@ -200,43 +200,58 @@ function PreviewPageContent() {
 
   const markdownComponents: Record<string, any> = {
     h1: ({ children, ...props }: any) => (
-      <h1 className="mb-8 text-4xl font-semibold text-slate-100" {...props}># {children}</h1>
+      <h1 className="mb-8 text-4xl font-bold text-cyan-300" {...props}>
+        ▶ {children}
+      </h1>
     ),
     h2: ({ children, ...props }: any) => (
-      <h2 className="mb-7 text-3xl font-semibold text-slate-100" {...props}>## {children}</h2>
+      <h2 className="mb-7 text-3xl font-bold text-cyan-400" {...props}>
+        ├ {children}
+      </h2>
     ),
     h3: ({ children, ...props }: any) => (
-      <h3 className="mt-5 text-2xl font-semibold text-slate-100" {...props}>### {children}</h3>
+      <h3 className="mt-5 text-2xl font-semibold text-cyan-300" {...props}>
+        ├─ {children}
+      </h3>
     ),
     h4: ({ children, ...props }: any) => (
-      <h4 className="mt-6 text-xl font-semibold text-slate-100" {...props}>#### {children}</h4>
+      <h4 className="mt-6 text-xl font-semibold text-slate-300" {...props}>
+        │ {children}
+      </h4>
     ),
     h5: ({ children, ...props }: any) => (
-      <h5 className="mt-5 text-lg font-semibold text-slate-200" {...props}>##### {children}</h5>
+      <h5 className="mt-5 text-lg font-semibold text-slate-300" {...props}>
+        • {children}
+      </h5>
     ),
     h6: ({ children, ...props }: any) => (
-      <h6 className="mt-5 text-base font-semibold text-slate-200" {...props}>###### {children}</h6>
+      <h6 className="mt-5 text-base font-semibold text-slate-400" {...props}>
+        ◦ {children}
+      </h6>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote className="my-6 border-l-4 border-zinc-600 bg-transparent px-4 text-xl italic leading-[1.7] text-zinc-300" {...props}>{children}</blockquote>
+      <blockquote className="my-6 border-l-2 border-cyan-500/50 bg-slate-900/40 px-4 py-3 text-sm italic text-slate-300" {...props}>{children}</blockquote>
     ),
     p: ({ children, ...props }: any) => (
-      <p className="text-xl leading-[1.7] text-white" {...props}>{children}</p>
+      <p className="text-lg leading-relaxed text-slate-200" {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: any) => (
-      <ul className="mt-4 list-disc pl-8 text-xl leading-[1.7] text-white" {...props}>{children}</ul>
+      <ul className="mt-4 list-none pl-0 text-lg leading-relaxed text-slate-200" {...props}>{children}</ul>
     ),
     ol: ({ children, ...props }: any) => (
-      <ol className="mt-4 list-decimal pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ol>
+      <ol className="mt-4 list-none pl-0 text-lg leading-relaxed text-slate-200" {...props}>{children}</ol>
     ),
     li: ({ children, ...props }: any) => (
-      <li className="mt-2 text-base leading-8 text-zinc-100" {...props}>{children}</li>
+      <li className="mt-2 pl-6 text-lg leading-relaxed text-slate-200" {...props}>
+        <span className="absolute ml-[-1.5rem] text-cyan-400">›</span>
+        {children}
+      </li>
     ),
     pre: ({ children, ...props }: any) => (
-      <pre className="mt-5 overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-200" {...props}>{children}</pre>
+      <pre className="mt-5 overflow-x-auto rounded border border-slate-700 bg-black/80 p-4 text-sm text-green-300" {...props}>{children}</pre>
     ),
     code: ({ children, ...props }: any) => (
-      <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-sm text-cyan-200" {...props}>{children}</code>
+      <code className="rounded bg-slate-800/60 px-2 py-1 text-sm text-green-300" {...props}>{children}</code>
     ),
     img: renderImage,
   };
@@ -253,54 +268,70 @@ function PreviewPageContent() {
   };
 
   return (
-    <div className={`relative flex h-screen flex-col bg-black text-white ${isFullscreen ? 'p-0' : 'p-4'}`}>
-      <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-black/70 px-4 py-3 backdrop-blur-sm">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-zinc-500">Presentation Preview</p>
-          <h1 className="text-base font-semibold uppercase tracking-[0.15em] text-white">プレゼンテーション表示</h1>
+    <div className={`relative flex h-screen flex-col font-mono bg-slate-950 text-slate-100 ${isFullscreen ? 'p-0' : ''}`}>
+      {/* Terminal-style header */}
+      <div className="flex items-center justify-between gap-4 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-6 py-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            <div className="h-3 w-3 rounded-full bg-red-500/70"></div>
+            <div className="h-3 w-3 rounded-full bg-yellow-500/70"></div>
+            <div className="h-3 w-3 rounded-full bg-green-500/70"></div>
+          </div>
+          <div className="ml-2 text-xs tracking-widest text-slate-400">$ presentation</div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-3 text-xs">
+          <span className="text-slate-400">Slide</span>
+          <span className="rounded bg-slate-800 px-3 py-1 font-semibold text-cyan-300">
+            {safeSlideIndex + 1} / {displaySlides.length}
+          </span>
+        </div>
+      </div>
+
+      {/* Navigation bar */}
+      <div className="flex items-center justify-between gap-2 border-b border-slate-800 bg-slate-900/50 px-6 py-3">
+        <div className="flex gap-2">
           <button
-            className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800"
+            className="rounded border border-slate-700 bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-500 hover:bg-slate-700 hover:text-cyan-300"
             onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
             type="button"
           >
-            ← 前へ
+            ← Prev
           </button>
-          <span className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-zinc-300">
-            {safeSlideIndex + 1} / {displaySlides.length}
-          </span>
           <button
-            className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800"
+            className="rounded border border-slate-700 bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-500 hover:bg-slate-700 hover:text-cyan-300"
             onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
             type="button"
           >
-            次へ →
+            Next →
           </button>
+        </div>
+
+        <div className="flex gap-2">
           <button
-            className="rounded border border-cyan-500 bg-cyan-950/70 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-900"
+            className="rounded border border-cyan-600/50 bg-cyan-950/40 px-4 py-2 text-xs font-semibold text-cyan-300 transition hover:border-cyan-400 hover:bg-cyan-900/60 hover:shadow-lg hover:shadow-cyan-500/20"
             onClick={handleToggleFullscreen}
             type="button"
           >
-            {isFullscreen ? '全画面終了' : '全画面で開始'}
+            {isFullscreen ? '[ Exit Fullscreen ]' : '[ Fullscreen ]'}
           </button>
-          <Link className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800" href="/">
-            アップロードへ戻る
+          <Link className="rounded border border-slate-700 bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-500 hover:bg-slate-700 hover:text-cyan-300" href="/">
+            Back
           </Link>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden px-6 py-24">
+      {/* Content area */}
+      <div className="flex-1 overflow-hidden px-8 py-8">
         <div className="flex h-full items-center justify-center overflow-auto">
-          <div className="w-full max-w-5xl">
+          <div className="w-full max-w-4xl">
             {!isMarpCompatible ? (
-              <div className="mb-8 text-sm text-amber-200">
-                Marp対応の判定は <span className="font-semibold">marp: true</span> を見るようにしています。今の内容は Marp 非対応として、通常の Markdown 表示で表示します。
+              <div className="mb-8 rounded border border-yellow-600/40 bg-yellow-950/20 p-3 text-xs text-yellow-200">
+                <span className="text-yellow-300">⚠</span> Marp detected: <span className="font-semibold">marp: true</span> — rendering as standard Markdown
               </div>
             ) : null}
 
-            <div className="min-h-[70vh] w-full space-y-8 text-xl leading-[1.4] text-white [&_a]:text-cyan-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:shadow-lg [&_img]:shadow-black/40 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-700 [&_th]:bg-zinc-950 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950/95 [&_pre]:p-4">
+            <div className="min-h-[60vh] w-full space-y-6 leading-relaxed text-slate-200 [&_a]:text-cyan-400 [&_a]:underline [&_a]:hover:text-cyan-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded [&_img]:border [&_img]:border-slate-700 [&_img]:shadow-lg [&_img]:shadow-cyan-500/10 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-800/80 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-300 [&_td]:border [&_td]:border-slate-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-black/60 [&_pre]:p-4 [&_pre]:text-sm">
               <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{renderedSlide}</ReactMarkdown>
             </div>
           </div>
