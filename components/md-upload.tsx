@@ -1,6 +1,8 @@
 'use client';
 
 import { Trash2, Upload } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useRef, useState, type ImgHTMLAttributes, type InputHTMLAttributes } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-type UploadedEntry = {
-  file: File;
-  relativePath: string;
+type UploadedBundle = {
+  id: string;
+  label: string;
+  files: File[];
 };
 
 type PresentationViewerProps = {
@@ -135,16 +138,18 @@ function PresentationViewer({
 }
 
 export default function FileUpload01() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRequestRef = useRef(0);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedEntry[]>([]);
+  const [uploadedBundles, setUploadedBundles] = useState<UploadedBundle[]>([]);
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
   const [assetUrlMap, setAssetUrlMap] = useState<Record<string, string>>({});
   const [previewContent, setPreviewContent] = useState('');
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+  const [activeBundleId, setActiveBundleId] = useState<string | null>(null);
+  const [activeSourcePath, setActiveSourcePath] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const folderUploadProps = {
     directory: '',
@@ -155,6 +160,12 @@ export default function FileUpload01() {
     const webkitRelativePath = (file as File & { webkitRelativePath?: string })
       .webkitRelativePath;
     return webkitRelativePath ? webkitRelativePath.replace(/\\/g, '/') : file.name;
+  };
+
+  const getBundleLabel = (files: File[]) => {
+    const firstRelativePath = getRelativePath(files[0]);
+    const firstSegment = firstRelativePath.split('/')[0];
+    return firstSegment && files.length > 1 ? firstSegment : files[0]?.name ?? 'uploaded';
   };
 
   const readAsDataUrl = (file: File) =>
@@ -183,14 +194,14 @@ export default function FileUpload01() {
         return;
       }
       setPreviewContent(content);
-      setActiveFilePath(sourcePath ?? getRelativePath(file));
+      setActiveSourcePath(sourcePath ?? getRelativePath(file));
     } catch {
       if (requestId !== previewRequestRef.current) {
         return;
       }
       setPreviewContent('');
       setPreviewError('このファイルの内容を読み込めませんでした。');
-      setActiveFilePath(sourcePath ?? getRelativePath(file));
+      setActiveSourcePath(sourcePath ?? getRelativePath(file));
     } finally {
       if (requestId === previewRequestRef.current) {
         setIsPreviewLoading(false);
@@ -201,15 +212,28 @@ export default function FileUpload01() {
   const handleFileSelect = async (files: FileList | null) => {
     if (!files) return;
 
-    const newEntries = Array.from(files, (file) => ({
-      file,
-      relativePath: getRelativePath(file),
+    const uploadedFiles = Array.from(files);
+    const groupedFiles = new Map<string, File[]>();
+
+    uploadedFiles.forEach((file) => {
+      const relativePath = getRelativePath(file);
+      const groupKey = relativePath.includes('/') ? relativePath.split('/')[0] : file.name;
+      const existingGroup = groupedFiles.get(groupKey) ?? [];
+      existingGroup.push(file);
+      groupedFiles.set(groupKey, existingGroup);
+    });
+
+    const nextBundles = Array.from(groupedFiles.entries()).map(([groupKey, bundleFiles], index) => ({
+      id: `${groupKey}-${Date.now()}-${index}`,
+      label: getBundleLabel(bundleFiles),
+      files: bundleFiles,
     }));
 
-    setUploadedFiles((prev) => [...prev, ...newEntries]);
+    setUploadedBundles((prev) => [...prev, ...nextBundles]);
 
     const imageEntries = await Promise.all(
-      newEntries.map(async ({ file, relativePath }) => {
+      uploadedFiles.map(async (file) => {
+        const relativePath = getRelativePath(file);
         const isImageFile =
           file.type.startsWith('image/') ||
           /\.(png|jpe?g|gif|svg|webp|bmp|avif|ico)$/i.test(file.name);
@@ -233,7 +257,7 @@ export default function FileUpload01() {
 
     setAssetUrlMap((prev) => ({ ...prev, ...nextAssetMap }));
 
-    newEntries.forEach(({ relativePath }) => {
+    nextBundles.forEach((bundle) => {
       let progress = 0;
       const interval = setInterval(() => {
         progress += Math.random() * 10;
@@ -243,18 +267,20 @@ export default function FileUpload01() {
         }
         setFileProgresses((prev) => ({
           ...prev,
-          [relativePath]: Math.min(progress, 100),
+          [bundle.id]: Math.min(progress, 100),
         }));
       }, 300);
     });
 
-    const markdownEntry = newEntries.find(({ file }) =>
+    const latestBundle = nextBundles[nextBundles.length - 1];
+    const markdownFile = latestBundle?.files.find((file) =>
       file.name.toLowerCase().endsWith('.md')
     );
-    const previewEntry = markdownEntry ?? newEntries[newEntries.length - 1];
+    const previewFile = markdownFile ?? latestBundle?.files[0];
 
-    if (previewEntry) {
-      void loadPreviewForFile(previewEntry.file, previewEntry.relativePath);
+    if (latestBundle && previewFile) {
+      setActiveBundleId(latestBundle.id);
+      void loadPreviewForFile(previewFile, getRelativePath(previewFile));
     }
   };
 
@@ -271,35 +297,55 @@ export default function FileUpload01() {
     void handleFileSelect(e.dataTransfer.files);
   };
 
-  const removeFile = (relativePath: string) => {
-    setUploadedFiles((prev) =>
-      prev.filter((entry) => entry.relativePath !== relativePath)
-    );
+  const removeBundle = (bundleId: string) => {
+    setUploadedBundles((prev) => prev.filter((bundle) => bundle.id !== bundleId));
     setFileProgresses((prev) => {
       const newProgresses = { ...prev };
-      delete newProgresses[relativePath];
+      delete newProgresses[bundleId];
       return newProgresses;
     });
 
-    if (activeFilePath === relativePath) {
+    if (activeBundleId === bundleId) {
       setPreviewContent('');
       setPreviewError(null);
-      setActiveFilePath(null);
+      setActiveBundleId(null);
+      setActiveSourcePath(null);
       setIsPreviewLoading(false);
     }
   };
 
-  const showSelectedPresentation = () => {
-    const targetEntry =
-      uploadedFiles.find(
-        (entry) =>
-          entry.relativePath === activeFilePath || entry.file.name === activeFilePath
-      ) ?? uploadedFiles[uploadedFiles.length - 1];
+  const handlePreviewButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
 
-    if (targetEntry) {
-      setPreviewError(null);
-      void loadPreviewForFile(targetEntry.file, targetEntry.relativePath);
+    if (!uploadedBundles.length) {
+      return;
     }
+
+    const targetBundle =
+      uploadedBundles.find((bundle) => bundle.id === activeBundleId) ??
+      uploadedBundles[uploadedBundles.length - 1];
+
+    const markdownFile = targetBundle?.files.find((file) =>
+      file.name.toLowerCase().endsWith('.md')
+    );
+    const previewFile = markdownFile ?? targetBundle?.files[0];
+
+    if (!previewFile) {
+      return;
+    }
+
+    const payload = {
+      content: previewContent || '',
+      assets: assetUrlMap,
+      sourcePath: activeSourcePath ?? getRelativePath(previewFile),
+      bundleLabel: targetBundle?.label ?? previewFile.name,
+    };
+
+    window.sessionStorage.setItem('presentation-preview-payload', JSON.stringify(payload));
+    router.push('/preview?preview=1');
   };
 
   const getDisplayLabel = (relativePath: string) => {
@@ -361,29 +407,30 @@ export default function FileUpload01() {
           <div
             className={cn(
               'space-y-3 px-6 pb-5',
-              uploadedFiles.length > 0 ? 'mt-4' : ''
+              uploadedBundles.length > 0 ? 'mt-4' : ''
             )}
           >
-            {uploadedFiles.map((entry, index) => {
+            {uploadedBundles.map((bundle, index) => {
+              const totalSize = bundle.files.reduce((sum, file) => sum + file.size, 0);
               return (
                 <div
                   className="flex flex-col rounded-lg border border-border p-2"
-                  key={entry.relativePath + index}
+                  key={bundle.id + index}
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1 pr-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="max-w-62.5 truncate text-foreground text-sm">
-                            {getDisplayLabel(entry.relativePath)}
+                            {bundle.label}
                           </span>
                           <span className="whitespace-nowrap text-muted-foreground text-sm">
-                            {Math.round(entry.file.size / 1024)} KB
+                            {bundle.files.length} files · {Math.round(totalSize / 1024)} KB
                           </span>
                         </div>
                         <Button
                           className="bg-transparent! hover:text-red-500"
-                          onClick={() => removeFile(entry.relativePath)}
+                          onClick={() => removeBundle(bundle.id)}
                           size="icon-sm"
                           variant="ghost"
                         >
@@ -396,12 +443,12 @@ export default function FileUpload01() {
                           <div
                             className="h-full bg-primary"
                             style={{
-                              width: `${fileProgresses[entry.relativePath] || 0}%`,
+                              width: `${fileProgresses[bundle.id] || 0}%`,
                             }}
                           />
                         </div>
                         <span className="whitespace-nowrap text-muted-foreground text-xs">
-                          {Math.round(fileProgresses[entry.relativePath] || 0)}%
+                          {Math.round(fileProgresses[bundle.id] || 0)}%
                         </span>
                       </div>
                     </div>
@@ -411,7 +458,7 @@ export default function FileUpload01() {
             })}
           </div>
 
-          {uploadedFiles.length > 0 ? (
+          {uploadedBundles.length > 0 ? (
             <div className="mx-6 mb-5 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-inner">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <div>
@@ -422,9 +469,9 @@ export default function FileUpload01() {
                     フォルダ内の画像も相対パスで読み込み、黒基調の端末風表示に反映します。
                   </p>
                 </div>
-                {activeFilePath ? (
+                {activeSourcePath ? (
                   <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-400">
-                    {getDisplayLabel(activeFilePath)}
+                    {getDisplayLabel(activeSourcePath)}
                   </span>
                 ) : null}
               </div>
@@ -441,7 +488,7 @@ export default function FileUpload01() {
                 <PresentationViewer
                   assetUrlMap={assetUrlMap}
                   content={previewContent}
-                  sourcePath={activeFilePath}
+                  sourcePath={activeSourcePath}
                 />
               ) : (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 text-sm text-zinc-400">
@@ -453,14 +500,17 @@ export default function FileUpload01() {
 
           <div className="flex items-center justify-end rounded-b-lg border-border border-t bg-muted px-6 py-3">
             <div className="flex gap-2">
-              <Button
-                className="h-9 px-4 font-medium text-sm"
-                disabled={!uploadedFiles.length}
-                onClick={showSelectedPresentation}
+              <button
+                className="h-9 rounded-lg border border-transparent bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 disabled:pointer-events-none disabled:opacity-50"
+                disabled={!uploadedBundles.length}
+                onClick={handlePreviewButtonClick}
                 type="button"
               >
                 {isPreviewLoading ? '読み込み中…' : 'プレゼンテーションを表示'}
-              </Button>
+              </button>
+              <Link className="flex h-9 items-center rounded-lg border border-zinc-700 bg-background px-4 text-sm font-medium text-foreground" href="/preview">
+                別ページで確認
+              </Link>
             </div>
           </div>
         </CardContent>
