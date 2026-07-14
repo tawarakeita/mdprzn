@@ -200,58 +200,57 @@ function PreviewPageContent() {
 
   const markdownComponents: Record<string, any> = {
     h1: ({ children, ...props }: any) => (
-      <h1 className="mb-8 text-4xl font-bold text-cyan-300" {...props}>
-        ▶ {children}
+      <h1 className="mb-8 text-4xl font-bold text-slate-50" {...props}>
+        # {children}
       </h1>
     ),
     h2: ({ children, ...props }: any) => (
-      <h2 className="mb-7 text-3xl font-bold text-cyan-400" {...props}>
-        ├ {children}
+      <h2 className="mb-7 text-3xl font-bold text-slate-200" {...props}>
+        ## {children}
       </h2>
     ),
     h3: ({ children, ...props }: any) => (
-      <h3 className="mt-5 text-2xl font-semibold text-cyan-300" {...props}>
-        ├─ {children}
+      <h3 className="mt-6 text-2xl font-semibold text-slate-300" {...props}>
+        ### {children}
       </h3>
     ),
     h4: ({ children, ...props }: any) => (
-      <h4 className="mt-6 text-xl font-semibold text-slate-300" {...props}>
-        │ {children}
+      <h4 className="mt-5 text-xl font-semibold text-slate-400" {...props}>
+        #### {children}
       </h4>
     ),
     h5: ({ children, ...props }: any) => (
-      <h5 className="mt-5 text-lg font-semibold text-slate-300" {...props}>
-        • {children}
+      <h5 className="mt-4 text-lg font-semibold text-slate-400" {...props}>
+        ##### {children}
       </h5>
     ),
     h6: ({ children, ...props }: any) => (
-      <h6 className="mt-5 text-base font-semibold text-slate-400" {...props}>
-        ◦ {children}
+      <h6 className="mt-3 text-base font-semibold text-slate-500" {...props}>
+        ###### {children}
       </h6>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote className="my-6 border-l-2 border-cyan-500/50 bg-slate-900/40 px-4 py-3 text-sm italic text-slate-300" {...props}>{children}</blockquote>
+      <blockquote className="my-6 border-l-4 border-slate-600 bg-slate-900/30 px-4 py-3 italic text-slate-400" {...props}>{children}</blockquote>
     ),
     p: ({ children, ...props }: any) => (
-      <p className="text-lg leading-relaxed text-slate-200" {...props}>{children}</p>
+      <p className="text-base leading-relaxed text-slate-300" {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: any) => (
-      <ul className="mt-4 list-none pl-0 text-lg leading-relaxed text-slate-200" {...props}>{children}</ul>
+      <ul className="mt-4 list-disc pl-6 text-base leading-relaxed text-slate-300" {...props}>{children}</ul>
     ),
     ol: ({ children, ...props }: any) => (
-      <ol className="mt-4 list-none pl-0 text-lg leading-relaxed text-slate-200" {...props}>{children}</ol>
+      <ol className="mt-4 list-decimal pl-6 text-base leading-relaxed text-slate-300" {...props}>{children}</ol>
     ),
     li: ({ children, ...props }: any) => (
-      <li className="mt-2 pl-6 text-lg leading-relaxed text-slate-200" {...props}>
-        <span className="absolute ml-[-1.5rem] text-cyan-400">›</span>
+      <li className="mt-2 text-base leading-relaxed text-slate-300" {...props}>
         {children}
       </li>
     ),
     pre: ({ children, ...props }: any) => (
-      <pre className="mt-5 overflow-x-auto rounded border border-slate-700 bg-black/80 p-4 text-sm text-green-300" {...props}>{children}</pre>
+      <pre className="mt-5 overflow-x-auto rounded border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-300" {...props}>{children}</pre>
     ),
     code: ({ children, ...props }: any) => (
-      <code className="rounded bg-slate-800/60 px-2 py-1 text-sm text-green-300" {...props}>{children}</code>
+      <code className="rounded bg-slate-800/80 px-1.5 py-0.5 text-sm text-slate-200 font-mono" {...props}>{children}</code>
     ),
     img: renderImage,
   };
@@ -323,14 +322,14 @@ function PreviewPageContent() {
         <div className="flex h-full items-center justify-center overflow-auto">
           <div className={isFullscreen ? 'h-full w-full' : 'w-full max-w-4xl'}>
             {!isFullscreen && !isMarpCompatible && (
-              <div className="mb-6 rounded border border-yellow-300 bg-yellow-50 p-3 text-xs text-yellow-800">
-                ⚠ Marp detected: <span className="font-semibold">marp: true</span> — rendering as standard Markdown
+              <div className="mb-6 rounded border border-slate-700 bg-slate-900/40 p-3 text-xs text-slate-400">
+                ℹ Marp: <span className="font-semibold">marp: true</span> — rendering as standard Markdown
               </div>
             )}
 
             {/* Terminal-style slide container */}
-            <div className={`rounded-lg border-2 border-slate-900 bg-slate-950 p-8 font-mono shadow-2xl ${isFullscreen ? 'h-full border-0 rounded-none p-12' : ''}`}>
-              <div className="min-h-[60vh] w-full space-y-6 leading-relaxed text-slate-200 [&_a]:text-cyan-400 [&_a]:underline [&_a]:hover:text-cyan-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded [&_img]:border [&_img]:border-slate-700 [&_img]:shadow-lg [&_img]:shadow-cyan-500/10 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-800/80 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-300 [&_td]:border [&_td]:border-slate-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-black/60 [&_pre]:p-4 [&_pre]:text-sm">
+            <div className={`rounded-lg border border-slate-800 bg-slate-950 p-8 font-mono shadow-lg ${isFullscreen ? 'h-full border-0 rounded-none p-12' : ''}`}>
+              <div className="min-h-[60vh] w-full space-y-6 leading-relaxed text-slate-200 [&_a]:text-blue-400 [&_a]:underline [&_a]:hover:text-blue-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded [&_img]:border [&_img]:border-slate-700 [&_img]:shadow-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-800/60 [&_th]:px-3 [&_th]:py-2 [&_th]:text-slate-200 [&_td]:border [&_td]:border-slate-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-black/40 [&_pre]:p-4 [&_pre]:text-sm">
                 <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{renderedSlide}</ReactMarkdown>
               </div>
             </div>
@@ -341,7 +340,7 @@ function PreviewPageContent() {
       {/* Fullscreen exit hint */}
       {isFullscreen && (
         <button
-          className="absolute bottom-4 right-4 rounded border border-cyan-500/50 bg-slate-900/80 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800"
+          className="absolute bottom-4 right-4 rounded border border-slate-600 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-700"
           onClick={handleToggleFullscreen}
           type="button"
         >
