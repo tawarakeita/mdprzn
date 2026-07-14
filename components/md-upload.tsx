@@ -22,12 +22,25 @@ type PresentationViewerProps = {
   sourcePath: string | null;
 };
 
+function normalizePipeQuoteSyntax(markdown: string) {
+  return markdown
+    .split(/\r?\n/)
+    .map((line) => {
+      if (/^\|\s[^|]*$/.test(line)) {
+        return line.replace(/^\|\s?/, '> ');
+      }
+      return line;
+    })
+    .join('\n');
+}
+
 function PresentationViewer({
   content,
   assetUrlMap,
   sourcePath,
 }: PresentationViewerProps) {
   const normalizedContent = content.replace(/\r\n/g, '\n').trim();
+  const renderableContent = normalizePipeQuoteSyntax(normalizedContent);
 
   if (!normalizedContent) {
     return (
@@ -37,12 +50,12 @@ function PresentationViewer({
     );
   }
 
-  const frontmatterMatch = normalizedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+  const frontmatterMatch = renderableContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
   const frontmatterContent = frontmatterMatch?.[1] ?? '';
   const isMarpCompatible = /^\s*marp\s*:\s*true\s*$/im.test(frontmatterContent);
   const body = frontmatterMatch
-    ? normalizedContent.replace(frontmatterMatch[0], '').trim()
-    : normalizedContent;
+    ? renderableContent.replace(frontmatterMatch[0], '').trim()
+    : renderableContent;
   const slides = body
     .split(/\n---\s*\n?/g)
     .map((slide) => slide.trim())

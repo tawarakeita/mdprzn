@@ -56,6 +56,23 @@ function PreviewPageContent() {
   const assets = payload?.assets ?? {};
   const sourcePath = payload?.sourcePath ?? null;
 
+  const normalizePath = (path: string) =>
+    path
+      .replace(/\\/g, '/')
+      .replace(/^\.\//, '')
+      .replace(/\/+/g, '/');
+
+  const normalizePipeQuoteSyntax = (markdown: string) =>
+    markdown
+      .split(/\r?\n/)
+      .map((line) => {
+        if (/^\|\s[^|]*$/.test(line)) {
+          return line.replace(/^\|\s?/, '> ');
+        }
+        return line;
+      })
+      .join('\n');
+
   const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
   const frontmatterContent = frontmatterMatch?.[1] ?? '';
   const isMarpCompatible = /^\s*marp\s*:\s*true\s*$/im.test(frontmatterContent);
@@ -69,6 +86,7 @@ function PreviewPageContent() {
   const displaySlides = slides.length > 0 ? slides : [body];
   const safeSlideIndex = Math.min(currentSlideIndex, Math.max(displaySlides.length - 1, 0));
   const activeSlide = displaySlides[safeSlideIndex] ?? displaySlides[0] ?? '';
+  const renderedSlide = normalizePipeQuoteSyntax(activeSlide);
 
   useEffect(() => {
     setCurrentSlideIndex(0);
@@ -117,12 +135,6 @@ function PreviewPageContent() {
       </div>
     );
   }
-
-  const normalizePath = (path: string) =>
-    path
-      .replace(/\\/g, '/')
-      .replace(/^\.\//, '')
-      .replace(/\/+/g, '/');
 
   const resolveRelativePath = (base: string, relative: string) => {
     const baseSegments = base.split('/').filter(Boolean);
@@ -206,10 +218,10 @@ function PreviewPageContent() {
       <h6 className="mt-5 text-base font-semibold text-slate-200" {...props}>###### {children}</h6>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote className="my-6 rounded-xl border border-zinc-700 bg-zinc-950 p-4 font-mono text-sm text-zinc-200" {...props}>{children}</blockquote>
+      <blockquote className="my-6 border-l-4 border-zinc-700 bg-transparent px-4 text-base leading-8 text-zinc-200" {...props}>{children}</blockquote>
     ),
     p: ({ children, ...props }: any) => (
-      <p className="mt-5 text-base leading-8 text-zinc-100" {...props}>{children}</p>
+      <p className="text-base leading-8 text-zinc-100" {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: any) => (
       <ul className="mt-4 list-disc pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ul>
@@ -289,7 +301,7 @@ function PreviewPageContent() {
             ) : null}
 
             <div className="min-h-[60vh] w-full space-y-6 text-base leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{activeSlide}</ReactMarkdown>
+              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{renderedSlide}</ReactMarkdown>
             </div>
           </div>
         </div>
