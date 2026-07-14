@@ -46,22 +46,6 @@ function PreviewPageContent() {
     }
   }, [previewParam]);
 
-  if (!parsed) {
-    return (
-      <div className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-200">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-900/70 p-8">
-          <h1 className="text-2xl font-semibold">表示するプレゼンテーションがありません</h1>
-          <p className="mt-3 text-sm text-zinc-400">
-            アップロード画面からプレゼンテーションを送信してください。
-          </p>
-          <Link className="mt-6 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" href="/">
-            アップロードへ戻る
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   const { content, assets = {}, sourcePath } = parsed as {
     content: string;
     assets?: Record<string, string>;
@@ -113,6 +97,22 @@ function PreviewPageContent() {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  if (!parsed) {
+    return (
+      <div className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-200">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-900/70 p-8">
+          <h1 className="text-2xl font-semibold">表示するプレゼンテーションがありません</h1>
+          <p className="mt-3 text-sm text-zinc-400">
+            アップロード画面からプレゼンテーションを送信してください。
+          </p>
+          <Link className="mt-6 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" href="/">
+            アップロードへ戻る
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const resolveAssetUrl = (src?: string | Blob) => {
     if (!src || typeof src !== 'string') {
