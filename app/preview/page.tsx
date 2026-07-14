@@ -218,13 +218,13 @@ function PreviewPageContent() {
       <h6 className="mt-5 text-base font-semibold text-slate-200" {...props}>###### {children}</h6>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote className="my-6 border-l-4 border-zinc-700 bg-transparent px-4 text-base leading-8 text-zinc-200" {...props}>{children}</blockquote>
+      <blockquote className="my-6 border-l-4 border-zinc-600 bg-transparent px-4 text-xl italic leading-[1.7] text-zinc-300" {...props}>{children}</blockquote>
     ),
     p: ({ children, ...props }: any) => (
-      <p className="text-base leading-8 text-zinc-100" {...props}>{children}</p>
+      <p className="text-xl leading-[1.7] text-white" {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: any) => (
-      <ul className="mt-4 list-disc pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ul>
+      <ul className="mt-4 list-disc pl-8 text-xl leading-[1.7] text-white" {...props}>{children}</ul>
     ),
     ol: ({ children, ...props }: any) => (
       <ol className="mt-4 list-decimal pl-6 text-base leading-8 text-zinc-100" {...props}>{children}</ol>
@@ -253,54 +253,54 @@ function PreviewPageContent() {
   };
 
   return (
-    <div className={`flex h-screen flex-col bg-zinc-950 text-zinc-100 ${isFullscreen ? 'p-0' : 'p-6'}`}>
-      <div className={`flex items-center justify-between gap-3 ${isFullscreen ? 'px-4 py-3' : 'mx-auto max-w-6xl px-4 py-3'}`}>
+    <div className={`relative flex h-screen flex-col bg-black text-white ${isFullscreen ? 'p-0' : 'p-4'}`}>
+      <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-black/70 px-4 py-3 backdrop-blur-sm">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-zinc-500">Presentation Preview</p>
-          <h1 className="text-lg font-semibold text-zinc-100">プレゼンテーション表示</h1>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-zinc-500">Presentation Preview</p>
+          <h1 className="text-base font-semibold uppercase tracking-[0.15em] text-white">プレゼンテーション表示</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
+            className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800"
             onClick={() => setCurrentSlideIndex((prev) => Math.max(prev - 1, 0))}
             type="button"
           >
             ← 前へ
           </button>
-          <span className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400">
+          <span className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-zinc-300">
             {safeSlideIndex + 1} / {displaySlides.length}
           </span>
           <button
-            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
+            className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800"
             onClick={() => setCurrentSlideIndex((prev) => Math.min(prev + 1, displaySlides.length - 1))}
             type="button"
           >
             次へ →
           </button>
           <button
-            className="rounded-lg border border-cyan-700/60 bg-cyan-950/70 px-3 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-900"
+            className="rounded border border-cyan-500 bg-cyan-950/70 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-900"
             onClick={handleToggleFullscreen}
             type="button"
           >
             {isFullscreen ? '全画面終了' : '全画面で開始'}
           </button>
-          <Link className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800" href="/">
-            アップロードに戻る
+          <Link className="rounded border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-xs text-white transition hover:bg-zinc-800" href="/">
+            アップロードへ戻る
           </Link>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden px-4 pb-4">
+      <div className="flex-1 overflow-hidden px-6 py-24">
         <div className="flex h-full items-center justify-center overflow-auto">
-          <div className="w-full max-w-6xl">
+          <div className="w-full max-w-5xl">
             {!isMarpCompatible ? (
-              <div className="mb-6 text-sm text-amber-200">
+              <div className="mb-8 text-sm text-amber-200">
                 Marp対応の判定は <span className="font-semibold">marp: true</span> を見るようにしています。今の内容は Marp 非対応として、通常の Markdown 表示で表示します。
               </div>
             ) : null}
 
-            <div className="min-h-[60vh] w-full space-y-6 text-base leading-8 text-zinc-100 [&_a]:text-cyan-300 [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-800 [&_th]:bg-zinc-900 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950 [&_pre]:p-4">
+            <div className="min-h-[70vh] w-full space-y-8 text-xl leading-[1.4] text-white [&_a]:text-cyan-300 [&_img]:my-6 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:shadow-lg [&_img]:shadow-black/40 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-700 [&_th]:bg-zinc-950 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-zinc-700 [&_td]:px-3 [&_td]:py-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-950/95 [&_pre]:p-4">
               <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{renderedSlide}</ReactMarkdown>
             </div>
           </div>
