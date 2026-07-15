@@ -73,6 +73,9 @@ function PreviewPageContent() {
       })
       .join('\n');
 
+  const removeHtmlComments = (markdown: string) =>
+    markdown.replace(/<!--([\s\S]*?)-->/g, '').trim();
+
   const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
   const frontmatterContent = frontmatterMatch?.[1] ?? '';
   const isMarpCompatible = /^\s*marp\s*:\s*true\s*$/im.test(frontmatterContent);
@@ -86,7 +89,7 @@ function PreviewPageContent() {
   const displaySlides = slides.length > 0 ? slides : [body];
   const safeSlideIndex = Math.min(currentSlideIndex, Math.max(displaySlides.length - 1, 0));
   const activeSlide = displaySlides[safeSlideIndex] ?? displaySlides[0] ?? '';
-  const renderedSlide = normalizePipeQuoteSyntax(activeSlide);
+  const renderedSlide = removeHtmlComments(normalizePipeQuoteSyntax(activeSlide));
 
   useEffect(() => {
     setCurrentSlideIndex(0);
